@@ -331,7 +331,7 @@ vless://<UUID>@saas.sin.fan:443?encryption=none&security=tls
   &sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3,h2&type=ws
   &host=snip.edgeoneai.cc.cd
   &path=/fdip=sstp://vpn:vpn@vpn228702251.opengw.net:1587?ed=2560
-  #vpngate.me | Japan | vpn228702251
+  #vpngate | Japan | vpn228702251
 ```
 
 **两段式设计**，重点理解：
@@ -343,7 +343,7 @@ vless://<UUID>@saas.sin.fan:443?encryption=none&security=tls
    用 **SSTP 协议**（账号 `vpn`/`vpn`）拨号到对应的 VPNGate 志愿者节点，
    再把流量桥接回去。
 
-备注格式为 `vpngate.me | 国家 | 短主机名`，方便在客户端中识别。
+备注格式为 `vpngate | 国家 | 短主机名`，方便在客户端中识别。
 
 > 完整拆解见 [`vpngate.md`](vpngate.md)。
 
