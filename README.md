@@ -35,31 +35,30 @@
 ### 原始库（每小时抓取后更新）
 
 <!-- BEGIN:TOTAL -->
-> 更新时间：2026-09-29 08:23 UTC ｜ 原始库累计 **1027** 个节点，覆盖 **22** 个国家/地区
+> 更新时间：2026-09-29 09:26 UTC ｜ 原始库累计 **1058** 个节点，覆盖 **22** 个国家/地区
 <!-- END:TOTAL -->
 
 ### 有效节点（每天检测后更新）
 
 <!-- BEGIN:TESTED -->
-> 检测时间：2026-09-29 08:23 UTC ｜ 实测有效 **919** 个节点，覆盖 **22** 个国家/地区，平均速度 **283 Mbps**
+> 检测时间：2026-09-29 09:26 UTC ｜ 实测有效 **896** 个节点，覆盖 **21** 个国家/地区，平均速度 **279 Mbps**
 
 #### 各国有效节点数
 
 | 国家/地区 | 有效节点 | 平均速度 | 最高速度 |
 |---|---:|---:|---:|
-| Japan | 435 | 380 Mbps | 3933 Mbps |
-| Korea Republic of | 356 | 199 Mbps | 886 Mbps |
-| Russian Federation | 50 | 121 Mbps | 607 Mbps |
-| Thailand | 24 | 394 Mbps | 750 Mbps |
-| Viet Nam | 16 | 235 Mbps | 725 Mbps |
-| United States | 11 | 142 Mbps | 488 Mbps |
+| Japan | 425 | 376 Mbps | 3933 Mbps |
+| Korea Republic of | 336 | 194 Mbps | 853 Mbps |
+| Russian Federation | 55 | 113 Mbps | 607 Mbps |
+| Thailand | 24 | 397 Mbps | 750 Mbps |
+| Viet Nam | 19 | 247 Mbps | 725 Mbps |
+| United States | 12 | 114 Mbps | 349 Mbps |
 | Croatia (LOCAL Name: Hrvatska) | 7 | 143 Mbps | 226 Mbps |
 | Mexico | 3 | 173 Mbps | 403 Mbps |
-| Australia | 2 | 71 Mbps | 96 Mbps |
 | Canada | 2 | 79 Mbps | 134 Mbps |
 | Malaysia | 2 | 452 Mbps | 730 Mbps |
-| Argentina | 1 | 126 Mbps | 126 Mbps |
 | Armenia | 1 | 25 Mbps | 25 Mbps |
+| Australia | 1 | 45 Mbps | 45 Mbps |
 | Chile | 1 | 47 Mbps | 47 Mbps |
 | Grenada | 1 | 27 Mbps | 27 Mbps |
 | Hungary | 1 | 117 Mbps | 117 Mbps |
@@ -73,40 +72,40 @@
 #### 各国最快的链接（每国最多 5 条，不足则全部列出）
 
 <details>
-<summary>Japan —— 435 个有效节点（最快 5 条）</summary>
+<summary>Japan —— 425 个有效节点（最快 5 条）</summary>
 
   ```text
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn315836095.opengw.net%3A1378%3Fed%3D2560#vpngate.me%20%7C%20Japan%20%7C%20vpn315836095
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn949760217.opengw.net%3A1697%3Fed%3D2560#vpngate.me%20%7C%20Japan%20%7C%20vpn949760217
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn774927062.opengw.net%3A1776%3Fed%3D2560#vpngate.me%20%7C%20Japan%20%7C%20vpn774927062
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn594251655.opengw.net%3A1354%3Fed%3D2560#vpngate.me%20%7C%20Japan%20%7C%20vpn594251655
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn145500976.opengw.net%3A1231%3Fed%3D2560#vpngate.me%20%7C%20Japan%20%7C%20vpn145500976
+  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40public-vpn-95.opengw.net%3A443%3Fed%3D2560#vpngate.me%20%7C%20Japan%20%7C%20public-vpn-95
   ```
 
 </details>
 
 <details>
-<summary>Korea Republic of —— 356 个有效节点（最快 5 条）</summary>
+<summary>Korea Republic of —— 336 个有效节点（最快 5 条）</summary>
 
   ```text
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn990126810.opengw.net%3A1945%3Fed%3D2560#vpngate.me%20%7C%20Korea%20Republic%20of%20%7C%20vpn990126810
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn720886103.opengw.net%3A995%3Fed%3D2560#vpngate.me%20%7C%20Korea%20Republic%20of%20%7C%20vpn720886103
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn830655314.opengw.net%3A1674%3Fed%3D2560#vpngate.me%20%7C%20Korea%20Republic%20of%20%7C%20vpn830655314
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn960496987.opengw.net%3A1342%3Fed%3D2560#vpngate.me%20%7C%20Korea%20Republic%20of%20%7C%20vpn960496987
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn165692380.opengw.net%3A995%3Fed%3D2560#vpngate.me%20%7C%20Korea%20Republic%20of%20%7C%20vpn165692380
+  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn144440524.opengw.net%3A995%3Fed%3D2560#vpngate.me%20%7C%20Korea%20Republic%20of%20%7C%20vpn144440524
   ```
 
 </details>
 
 <details>
-<summary>Russian Federation —— 50 个有效节点（最快 5 条）</summary>
+<summary>Russian Federation —— 55 个有效节点（最快 5 条）</summary>
 
   ```text
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn501803801.opengw.net%3A1577%3Fed%3D2560#vpngate.me%20%7C%20Russian%20Federation%20%7C%20vpn501803801
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn305517077.opengw.net%3A1839%3Fed%3D2560#vpngate.me%20%7C%20Russian%20Federation%20%7C%20vpn305517077
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn173458867.opengw.net%3A1968%3Fed%3D2560#vpngate.me%20%7C%20Russian%20Federation%20%7C%20vpn173458867
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn397955876.opengw.net%3A1938%3Fed%3D2560#vpngate.me%20%7C%20Russian%20Federation%20%7C%20vpn397955876
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn520583431.opengw.net%3A1425%3Fed%3D2560#vpngate.me%20%7C%20Russian%20Federation%20%7C%20vpn520583431
+  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn353146232.opengw.net%3A1995%3Fed%3D2560#vpngate.me%20%7C%20Russian%20Federation%20%7C%20vpn353146232
   ```
 
 </details>
@@ -125,24 +124,24 @@
 </details>
 
 <details>
-<summary>Viet Nam —— 16 个有效节点（最快 5 条）</summary>
+<summary>Viet Nam —— 19 个有效节点（最快 5 条）</summary>
 
   ```text
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn864131273.opengw.net%3A995%3Fed%3D2560#vpngate.me%20%7C%20Viet%20Nam%20%7C%20vpn864131273
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn743566583.opengw.net%3A1775%3Fed%3D2560#vpngate.me%20%7C%20Viet%20Nam%20%7C%20vpn743566583
+  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn225862051.opengw.net%3A1958%3Fed%3D2560#vpngate.me%20%7C%20Viet%20Nam%20%7C%20vpn225862051
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn922312929.opengw.net%3A1997%3Fed%3D2560#vpngate.me%20%7C%20Viet%20Nam%20%7C%20vpn922312929
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn198374908.opengw.net%3A995%3Fed%3D2560#vpngate.me%20%7C%20Viet%20Nam%20%7C%20vpn198374908
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn894929051.opengw.net%3A1622%3Fed%3D2560#vpngate.me%20%7C%20Viet%20Nam%20%7C%20vpn894929051
+  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn350891291.opengw.net%3A1671%3Fed%3D2560#vpngate.me%20%7C%20Viet%20Nam%20%7C%20vpn350891291
   ```
 
 </details>
 
 <details>
-<summary>United States —— 11 个有效节点（最快 5 条）</summary>
+<summary>United States —— 12 个有效节点（最快 5 条）</summary>
 
   ```text
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn197493440.opengw.net%3A1258%3Fed%3D2560#vpngate.me%20%7C%20United%20States%20%7C%20vpn197493440
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn918840683.opengw.net%3A1245%3Fed%3D2560#vpngate.me%20%7C%20United%20States%20%7C%20vpn918840683
+  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn785793258.opengw.net%3A1761%3Fed%3D2560#vpngate.me%20%7C%20United%20States%20%7C%20vpn785793258
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn164693092.opengw.net%3A1363%3Fed%3D2560#vpngate.me%20%7C%20United%20States%20%7C%20vpn164693092
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn907569351.opengw.net%3A1881%3Fed%3D2560#vpngate.me%20%7C%20United%20States%20%7C%20vpn907569351
   vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn115726570.opengw.net%3A1583%3Fed%3D2560#vpngate.me%20%7C%20United%20States%20%7C%20vpn115726570
@@ -175,16 +174,6 @@
 </details>
 
 <details>
-<summary>Australia —— 2 个有效节点（全部 2 条）</summary>
-
-  ```text
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn759761201.opengw.net%3A1521%3Fed%3D2560#vpngate.me%20%7C%20Australia%20%7C%20vpn759761201
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn289936273.opengw.net%3A1763%3Fed%3D2560#vpngate.me%20%7C%20Australia%20%7C%20vpn289936273
-  ```
-
-</details>
-
-<details>
 <summary>Canada —— 2 个有效节点（全部 2 条）</summary>
 
   ```text
@@ -205,19 +194,19 @@
 </details>
 
 <details>
-<summary>Argentina —— 1 个有效节点（全部 1 条）</summary>
+<summary>Armenia —— 1 个有效节点（全部 1 条）</summary>
 
   ```text
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn674623436.opengw.net%3A1409%3Fed%3D2560#vpngate.me%20%7C%20Argentina%20%7C%20vpn674623436
+  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn763562980.opengw.net%3A995%3Fed%3D2560#vpngate.me%20%7C%20Armenia%20%7C%20vpn763562980
   ```
 
 </details>
 
 <details>
-<summary>Armenia —— 1 个有效节点（全部 1 条）</summary>
+<summary>Australia —— 1 个有效节点（全部 1 条）</summary>
 
   ```text
-  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn763562980.opengw.net%3A995%3Fed%3D2560#vpngate.me%20%7C%20Armenia%20%7C%20vpn763562980
+  vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3%2Ch2&type=ws&host=snip.edgeoneai.cc.cd&path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn289936273.opengw.net%3A1763%3Fed%3D2560#vpngate.me%20%7C%20Australia%20%7C%20vpn289936273
   ```
 
 </details>
