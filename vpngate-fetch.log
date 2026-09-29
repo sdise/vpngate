@@ -571,3 +571,20 @@
 [2026-09-29 14:18:03]   + vpn442508186.opengw.net (Korea Republic of, 41.31 Mbps, TCP:1828)
 [2026-09-29 14:18:03] vpngate.txt 已重建: 1155 条
 [2026-09-29 14:18:03] 完成
+[2026-09-29 16:17:55] 开始抓取 VPNGate 数据
+[2026-09-29 16:18:01] API 返回 84 个 TCP 中继
+[2026-09-29 16:18:01] vpngate.csv 现有 1155 个 Hostname
+[2026-09-29 16:18:01] 新增 43 个节点,忽略已存在 41 个
+[2026-09-29 16:18:01]   + vpn109710126.opengw.net (Japan, 910.34 Mbps, TCP:1292)
+[2026-09-29 16:18:01]   + vpn324264097.opengw.net (Japan, 608.59 Mbps, TCP:1937)
+[2026-09-29 16:18:01]   + vpn402979803.opengw.net (Japan, 530.64 Mbps, TCP:1468)
+[2026-09-29 16:18:01]   + vpn848085750.opengw.net (Japan, 513.15 Mbps, TCP:1860)
+[2026-09-29 16:18:01]   + vpn425545010.opengw.net (Japan, 400.60 Mbps, TCP:1346)
+[2026-09-29 16:18:01]   + vpn190212828.opengw.net (Japan, 349.33 Mbps, TCP:1425)
+[2026-09-29 16:18:01]   + public-vpn-214.opengw.net (Japan, 317.51 Mbps, TCP:443)
+[2026-09-29 16:18:01]   + public-vpn-231.opengw.net (Japan, 286.30 Mbps, TCP:443)
+[2026-09-29 16:18:01]   + vpn165851293.opengw.net (Japan, 256.72 Mbps, TCP:1437)
+[2026-09-29 16:18:01]   + public-vpn-135.opengw.net (Japan, 230.15 Mbps, TCP:443)
+[2026-09-29 16:18:01]   ... 另有 33 个未列出
+[2026-09-29 16:18:01] vpngate.txt 已重建: 1198 条
+[2026-09-29 16:18:01] 完成
