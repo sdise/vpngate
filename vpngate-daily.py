@@ -145,7 +145,7 @@ def fdip_path(hostname, tcp_port):
 
 
 def remark(country, hostname):
-    return f"vpngate.me | {country} | {short_hostname(hostname)}"
+    return f"vpngate | {country} | {short_hostname(hostname)}"
 
 
 def build_vless_link(country, hostname, tcp_port):

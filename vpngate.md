@@ -91,10 +91,10 @@ vless://<UUID>@<SERVER>?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd
 ## 6. 备注（`#` 后面的名字）构成
 
 ```
-vpngate.me | {Country} | {short_hostname}
+vpngate | {Country} | {short_hostname}
 ```
 
-示例（URL 编码前）：`vpngate.me | Japan | vpn228702251`
+示例（URL 编码前）：`vpngate | Japan | vpn228702251`
 
 ## 7. 完整链接示例（拆解）
 
@@ -108,11 +108,11 @@ vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443
   &type=ws
   &host=snip.edgeoneai.cc.cd
   &path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn228702251.opengw.net%3A1587%3Fed%3D2560
-  #vpngate.me%20%7C%20Japan%20%7C%20vpn228702251
+  #vpngate%20%7C%20Japan%20%7C%20vpn228702251
 ```
 
 其中 `path` 解码为 `/fdip=sstp://vpn:vpn@vpn228702251.opengw.net:1587?ed=2560`，
-`#` 后解码为 `vpngate.me | Japan | vpn228702251`。
+`#` 后解码为 `vpngate | Japan | vpn228702251`。
 
 ## 8. 生成流程
 
@@ -138,7 +138,7 @@ vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443
 由 `build_clash_proxy` 为每个有效节点生成：
 
 ```yaml
-- name: "vpngate.me | Japan | vpn228702251"  # 与 VLESS 备注同格式
+- name: "vpngate | Japan | vpn228702251"  # 与 VLESS 备注同格式
   type: vless
   server: saas.sin.fan
   port: 443

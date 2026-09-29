@@ -11,7 +11,7 @@
     &sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3,h2
     &type=xhttp&host=snip.edgeoneai.cc.cd
     &path=<fdip path>&mode=stream-one&extra=<urlencoded json>
-    #vpngate.me | 国家 | 短主机名
+    #vpngate | 国家 | 短主机名
 
 环境变量:
   VPNGATE_TESTED_CSV  有效库路径 (默认: 仓库根 vpngate_tested.csv)
