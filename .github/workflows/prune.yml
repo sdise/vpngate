@@ -1,0 +1,49 @@
+name: 每周清理原始库
+
+# 每 7 天执行一次: vpngate.csv(原始累计库)会不断累积已下线的无效节点,
+# 用 vpngate_tested.csv(有效库)覆盖它, 防止无效节点越积越多。
+# 订阅文件始终由有效库生成, 这里不需要重建。
+on:
+  schedule:
+    # 每周日 04:00 UTC 执行一次
+    - cron: "0 4 * * 0"
+  workflow_dispatch:  # 允许在 Actions 页面手动触发
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vpngate-data
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 用有效库覆盖原始库
+        run: |
+          if [ ! -f vpngate_tested.csv ]; then
+            echo "vpngate_tested.csv 不存在(检测任务尚未成功运行过), 跳过"
+            exit 0
+          fi
+          before=$(($(wc -l < vpngate.csv) - 1))
+          after=$(($(wc -l < vpngate_tested.csv) - 1))
+          cp vpngate_tested.csv vpngate.csv
+          echo "清理前 ${before} 行, 清理后 ${after} 行"
+
+      - name: 提交清理结果
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vpngate.csv
+          if git diff --cached --quiet; then
+            echo "无变化, 跳过提交"
+          else
+            git commit -m "chore: 每周清理原始库 $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git pull --rebase origin main || true
+            git push origin main
+          fi

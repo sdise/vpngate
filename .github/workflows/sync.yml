@@ -1,0 +1,197 @@
+name: 更新并检测 VPNGate 节点
+
+# 单一流水线: 抓取节点库 -> xray 实测有效性 -> 重建订阅 -> 一次性提交。
+# (由原 update.yml 与 test.yml 合并而来)
+#
+# 触发方式(A 方案, 不依赖 GitHub 原生 schedule):
+#   由外部定时器(服务器 crontab)每小时调用一次 GitHub API 触发:
+#     POST https://api.github.com/repos/sdise/vpngate/actions/workflows/sync.yml/dispatches
+#     body: {"ref":"main"}
+#   原因: GitHub 原生 schedule 是 best-effort, 高负载时会延迟数十分钟甚至丢点。
+#   Actions 页面也支持手动触发(workflow_dispatch)。
+#
+# 流程:
+#   1. 安装 Python 与 xray 内核;
+#   2. python vpngate-daily.py       抓取官方 API, 增量更新 vpngate.csv, 重建 vpngate.txt;
+#   3. python scripts/test_nodes.py  逐个实测 vpngate.txt 中的 VLESS 链接, 有效节点写入
+#      vpngate_tested.csv(不修改 vpngate.csv), 并由有效库重建
+#      vpngate-v2ray.txt 与 vpngate-clash.yaml;
+#   4. python scripts/build_xhttp.py 由有效库生成 vpngate-xhttp.txt (VLESS + XHTTP);
+#   5. python scripts/gen_readme.py  刷新 README 的总节点/有效节点统计区块;
+#   6. 一次性提交全部产物;
+#   7. 向 Telegram 频道推送 v2ray/clash/xhttp 的源文件链接, 以及 csv 数据文件。
+#
+# 安全护栏(见 scripts/test_nodes.py): 入口不可达或有效比例低于 20% 时自动中止,
+# 不写任何订阅文件, 防止网络波动导致误删。
+#
+# 合规说明: 本工作流仅以 xray 作为客户端做连通性测试(等价于 CI 集成测试),
+# 不在 runner 上对外提供任何代理服务, 不挖矿、不发垃圾流量, 符合 GitHub 使用政策。
+on:
+  workflow_dispatch:  # 由服务器定时器 / Actions 页面手动触发
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vpngate-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 抓取并更新节点库
+        env:
+          VPNGATE_CSV: vpngate.csv
+          VPNGATE_TXT: vpngate.txt
+          VPNGATE_LOG: vpngate-fetch.log
+        run: python vpngate-daily.py
+
+      - name: 安装 xray 内核
+        env:
+          # 走 API 时带上 token, 显著降低被限流 (403 rate limit) 的概率
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ZIP=/tmp/xray.zip
+
+          AUTH=()
+          if [ -n "${GITHUB_TOKEN:-}" ]; then
+            AUTH=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+          fi
+
+          # 1) 取最新版本号: 优先 API, 失败则回退到解析 releases/latest 的重定向 URL
+          VER=""
+          for i in 1 2 3; do
+            VER=$(curl -fsSL --retry 3 --retry-delay 3 --max-time 30 \
+                    -H "Accept: application/vnd.github+json" "${AUTH[@]}" \
+                    https://api.github.com/repos/XTLS/Xray-core/releases/latest \
+                  | grep -m1 '"tag_name"' | cut -d'"' -f4) || VER=""
+            [ -n "$VER" ] && break
+            echo "第 ${i} 次获取版本号失败, 3 秒后重试..."
+            sleep 3
+          done
+          if [ -z "$VER" ]; then
+            echo "API 获取失败, 改用重定向方式获取版本号"
+            LOC=$(curl -fsSL --retry 3 --retry-delay 3 --max-time 30 \
+                    -o /dev/null -w '%{url_effective}' \
+                    https://github.com/XTLS/Xray-core/releases/latest) || LOC=""
+            VER=$(basename "$LOC")
+          fi
+
+          # 2) 版本号必须形如 v1.2.3, 否则立刻失败(不要带着空版本继续下载)
+          if ! printf '%s' "$VER" | grep -Eq '^v[0-9]+\.[0-9]+'; then
+            echo "::error::无法获取 xray 版本号 (得到: '${VER}')"
+            exit 1
+          fi
+          echo "xray 版本: ${VER}"
+
+          # 3) 下载并校验: GitHub 出错时会返回 HTML/JSON, 必须先确认是 zip
+          curl -fsSL --retry 3 --retry-delay 5 --max-time 300 \
+            -o "$ZIP" "https://github.com/XTLS/Xray-core/releases/download/${VER}/Xray-linux-64.zip"
+          if ! unzip -l "$ZIP" >/dev/null 2>&1; then
+            echo "::error::下载到的不是有效的 zip 文件, 前 200 字节内容如下:"
+            head -c 200 "$ZIP"; echo
+            exit 1
+          fi
+
+          mkdir -p /tmp/xray-bin
+          unzip -o "$ZIP" xray -d /tmp/xray-bin
+          chmod +x /tmp/xray-bin/xray
+          /tmp/xray-bin/xray version
+
+      - name: 安装 pyyaml(生成 Clash 订阅用)
+        run: pip install pyyaml
+
+      - name: 测试有效性并重建订阅
+        env:
+          VPNGATE_CSV: vpngate.csv
+          VPNGATE_TXT: vpngate.txt
+          VPNGATE_TESTED_CSV: vpngate_tested.csv
+          VPNGATE_V2RAY: vpngate-v2ray.txt
+          VPNGATE_CLASH: vpngate-clash.yaml
+          XRAY_BIN: /tmp/xray-bin/xray
+          TEST_WORKERS: "32"
+          TEST_TIMEOUT: "15"
+        run: python scripts/test_nodes.py
+
+      - name: 生成 vpngate-xhttp.txt (VLESS + XHTTP)
+        env:
+          VPNGATE_TESTED_CSV: vpngate_tested.csv
+          VPNGATE_XHTTP: vpngate-xhttp.txt
+        run: python scripts/build_xhttp.py
+
+      - name: 更新 README 统计(总节点 + 有效节点)
+        env:
+          VPNGATE_TESTED_CSV: vpngate_tested.csv
+          TOP_PER_COUNTRY: "5"
+        run: python scripts/gen_readme.py --mode both
+
+      - name: 提交结果
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vpngate.csv vpngate.txt vpngate-fetch.log \
+                  vpngate_tested.csv vpngate-v2ray.txt vpngate-clash.yaml \
+                  vpngate-xhttp.txt README.md
+          if git diff --cached --quiet; then
+            echo "无变化, 跳过提交"
+          else
+            git commit -m "chore: 更新节点库与订阅 $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git pull --rebase origin main || true
+            git push origin main
+          fi
+
+      - name: 推送订阅链接与数据文件到 Telegram 频道
+        env:
+          # token 与 chat_id 均来自仓库 Actions 配置, 不写入仓库文件
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
+            echo "::error::未配置 secret TELEGRAM_BOT_TOKEN"; exit 1
+          fi
+          if [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
+            echo "::error::未配置 secret TELEGRAM_CHAT_ID"; exit 1
+          fi
+          API="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
+
+          # 1) 订阅"源文件链接"(文本消息): v2ray / clash / xhttp 均指向 GitHub 源文件
+          RAW="https://raw.githubusercontent.com/sdise/vpngate/main"
+          TS="$(date -u '+%Y-%m-%d %H:%M UTC')"
+          TEXT="📦 VPNGate 订阅已更新（${TS}）
+          • v2rayN / VLESS(ws)：${RAW}/vpngate-v2ray.txt
+          • Clash / Mihomo：${RAW}/vpngate-clash.yaml
+          • VLESS XHTTP：${RAW}/vpngate-xhttp.txt
+          下方附原始库与有效库 CSV。"
+          echo "发送订阅链接"
+          curl -fsS --retry 3 --retry-delay 5 --retry-all-errors --max-time 60 \
+            -X POST "${API}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${TEXT}"
+          echo
+
+          # 2) 数据文件(附件)
+          for f in vpngate.csv vpngate_tested.csv; do
+            if [ ! -f "$f" ]; then
+              echo "跳过: $f 不存在"; continue
+            fi
+            echo "上传 $f ($(wc -c < "$f") 字节)"
+            curl -fsS --retry 3 --retry-delay 5 --retry-all-errors --max-time 120 \
+              -X POST "${API}/sendDocument" \
+              -F "chat_id=${TELEGRAM_CHAT_ID}" \
+              -F "document=@${f}" \
+              -F "caption=${f} @ $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo
+          done
+          echo "Telegram 推送完成"
