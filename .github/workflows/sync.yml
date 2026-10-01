@@ -13,9 +13,13 @@ name: 更新并检测 VPNGate 节点
 # 流程:
 #   1. 安装 Python 与 xray 内核;
 #   2. python vpngate-daily.py       抓取官方 API, 增量更新 vpngate.csv, 重建 vpngate.txt;
-#   3. python scripts/test_nodes.py  逐个实测 vpngate.txt 中的 VLESS 链接, 有效节点写入
-#      vpngate_tested.csv(不修改 vpngate.csv), 并由有效库重建
-#      vpngate-v2ray.txt 与 vpngate-clash.yaml;
+#   3. python scripts/test_nodes.py  逐个实测 vpngate.txt 中的 VLESS 链接;
+#      对有效的节点, 复用同一条 SOCKS 出口再请求 https://my.ippure.com/v1/info,
+#      取回 isResidential / fraudScore / ip 三列写入 vpngate_tested.csv(不修改
+#      vpngate.csv); 请求失败或字段缺失时该三列留空。
+#      随后由有效库重建 vpngate-v2ray.txt 与 vpngate-clash.yaml, 备注格式:
+#        有画像数据 -> 家宽|纯净度:{fraudScore}|{Country}|{Speed_Mbps}|落地:{ip}
+#        无画像数据 -> {Country}|{Speed_Mbps}
 #   4. python scripts/build_xhttp.py 由有效库生成 vpngate-xhttp.txt (VLESS + XHTTP);
 #   5. python scripts/gen_readme.py  刷新 README 的总节点/有效节点统计区块;
 #   6. 一次性提交全部产物;
@@ -122,6 +126,10 @@ jobs:
           XRAY_BIN: /tmp/xray-bin/xray
           TEST_WORKERS: "32"
           TEST_TIMEOUT: "15"
+          # 经节点查询节点画像(ippure), 供备注使用; 置 0 可整体关闭(备注回退)
+          IPINFO_ENABLE: "1"
+          IPINFO_URL: "https://my.ippure.com/v1/info"
+          IPINFO_TIMEOUT: "10"
         run: python scripts/test_nodes.py
 
       - name: 生成 vpngate-xhttp.txt (VLESS + XHTTP)

@@ -120,7 +120,7 @@ def build_tested_block(daily):
         lines.append("")
         lines.append("  ```text")
         for r in top:
-            link = daily.build_vless_link(r.get("Country"), r.get("Hostname"), r.get("TCP_Port"))
+            link = daily.build_vless_link(r)
             if link:
                 lines.append("  " + link)
         lines.append("  ```")

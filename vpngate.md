@@ -90,11 +90,37 @@ vless://<UUID>@<SERVER>?encryption=none&security=tls&sni=snip.edgeoneai.cc.cd
 
 ## 6. 备注（`#` 后面的名字）构成
 
+由 `vpngate-daily.py :: remark()` 生成，分两种：
+
+**A. 有 IP 画像数据**（有效库 `vpngate_tested.csv` 的 `IsResidential` / `FraudScore` / `ExitIP` 三列齐全）：
+
 ```
-vpngate | {Country} | {short_hostname}
+{家宽|机房}|纯净度:{fraudScore}|{Country}|{Speed_Mbps}|落地:{ip}
 ```
 
-示例（URL 编码前）：`vpngate | Japan | vpn228702251`
+示例（URL 编码前）：`家宽|纯净度:7|Japan|241.51|落地:219.100.37.15`
+
+**B. 无画像数据**（原始库 `vpngate.csv`，或采集失败 / 返回非 JSON / 关键字段缺失）：
+
+```
+{Country}|{Speed_Mbps}
+```
+
+示例：`Japan|241.51`
+
+字段来源：
+
+| 字段 | 来源 | 说明 |
+|---|---|---|
+| 家宽 / 机房 | ippure `isResidential` | `true` → 家宽，`false` → 机房 |
+| 纯净度 | ippure `fraudScore` | 越低越干净；`0` 是合法值，不会被当成缺失 |
+| Country | `vpngate.csv` | 国家名 |
+| Speed_Mbps | `vpngate.csv` | 采集时的测速值 |
+| 落地 | ippure `ip` | 经该节点出口查到的公网 IP，可能是 IPv4 或 IPv6 |
+
+> 备注里的 `|`、中文等字符会由 `urllib.parse.quote` 做 URL 编码，
+> 例如 `家宽|纯净度:7|Japan|241.51|落地:1.2.3.4` →
+> `%E5%AE%B6%E5%AE%BD%7C%E7%BA%AF%E5%87%80%E5%BA%A6%3A7%7CJapan%7C241.51%7C%E8%90%BD%E5%9C%B0%3A1.2.3.4`。
 
 ## 7. 完整链接示例（拆解）
 
@@ -108,11 +134,11 @@ vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443
   &type=ws
   &host=snip.edgeoneai.cc.cd
   &path=%2Ffdip%3Dsstp%3A%2F%2Fvpn%3Avpn%40vpn228702251.opengw.net%3A1587%3Fed%3D2560
-  #vpngate%20%7C%20Japan%20%7C%20vpn228702251
+  #%E5%AE%B6%E5%AE%BD%7C%E7%BA%AF%E5%87%80%E5%BA%A6%3A7%7CJapan%7C241.51%7C%E8%90%BD%E5%9C%B0%3A219.100.37.15
 ```
 
 其中 `path` 解码为 `/fdip=sstp://vpn:vpn@vpn228702251.opengw.net:1587?ed=2560`，
-`#` 后解码为 `vpngate | Japan | vpn228702251`。
+`#` 后解码为 `家宽|纯净度:7|Japan|241.51|落地:219.100.37.15`（无画像数据时为 `Japan|241.51`）。
 
 ## 8. 生成流程
 
@@ -124,6 +150,31 @@ vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443
 2. **订阅文件（有效节点）**：`scripts/test_nodes.py` 每日检测后调用
    `rebuild_subscriptions(vpngate_tested.csv)`，由有效库生成
    `vpngate-v2ray.txt`（v2rayN）与 `vpngate-clash.yaml`（Clash）。
+
+### IP 画像采集（新增）
+
+对**检测有效**的节点，检测脚本会**复用同一条 SOCKS 出口**再请求一次：
+
+```
+GET https://my.ippure.com/v1/info
+```
+
+该接口返回**请求方出口 IP** 的画像，所以必须经节点发起请求才能拿到该节点自己的数据。
+取其中三个字段写入有效库：
+
+| 有效库列 | 接口字段 | 类型 |
+|---|---|---|
+| `IsResidential` | `isResidential` | `true` / `false`（布尔） |
+| `FraudScore` | `fraudScore` | 整数 |
+| `ExitIP` | `ip` | 字符串（IPv4 或 IPv6） |
+
+以下情况三列留空，备注自动回退为 `{Country}|{Speed_Mbps}`：
+
+- 请求失败 / 超时 / 返回体为空；
+- 返回的不是 JSON（**常见于触发人机验证**，拿到的是 HTML 验证页）；
+- 缺少 `isResidential` / `fraudScore` / `ip` 中的任意一个。
+
+可通过环境变量控制：`IPINFO_ENABLE`（置 `0` 整体关闭）、`IPINFO_URL`、`IPINFO_TIMEOUT`、`IPINFO_UA`。
 
 ## 9. 已知数据异常
 
@@ -138,7 +189,7 @@ vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443
 由 `build_clash_proxy` 为每个有效节点生成：
 
 ```yaml
-- name: "vpngate | Japan | vpn228702251"  # 与 VLESS 备注同格式
+- name: "家宽|纯净度:7|Japan|241.51|落地:219.100.37.15"  # 与 VLESS 备注同格式
   type: vless
   server: saas.sin.fan
   port: 443
@@ -158,6 +209,12 @@ vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443
 文件尾部附带一个 `select` 类型的 `proxy-groups`（`vpngate-手动选择`，
 含全部节点）与 `rules: [MATCH, vpngate-手动选择]`，因此整个文件就是一份
 开箱即用的 Clash 配置，可直接填入客户端订阅。
+
+> **名字唯一性**：Clash 要求每个 proxy 的 `name` 唯一。新备注只含
+> `国家 + 速度 + 落地 IP`，同一出口 IP 上挂多个 `Hostname` 时可能撞名，
+> 因此 `rebuild_clash_subscription()` 在检测到重名时会按需补上短主机名
+> （仍重复则再加 `#序号`），例如
+> `家宽|纯净度:7|Japan|241.51|落地:219.100.37.15|public-vpn-50`。
 
 ## 10. 数据分层与文件总览
 

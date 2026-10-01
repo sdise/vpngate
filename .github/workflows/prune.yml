@@ -24,7 +24,14 @@ jobs:
       - name: 检出仓库
         uses: actions/checkout@v4
 
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: 用有效库覆盖原始库
+        # 有效库比原始库多 IsResidential / FraudScore / ExitIP 三列(ippure 画像),
+        # 覆盖时只保留原始库的 5 列, 否则后续增量 append 会与新表头错列。
         run: |
           if [ ! -f vpngate_tested.csv ]; then
             echo "vpngate_tested.csv 不存在(检测任务尚未成功运行过), 跳过"
@@ -32,7 +39,21 @@ jobs:
           fi
           before=$(($(wc -l < vpngate.csv) - 1))
           after=$(($(wc -l < vpngate_tested.csv) - 1))
-          cp vpngate_tested.csv vpngate.csv
+          python - <<'PY'
+          import csv
+
+          RAW_HEADER = ["Country", "Hostname", "IP", "Speed_Mbps", "TCP_Port"]
+
+          with open("vpngate_tested.csv", encoding="utf-8", errors="replace", newline="") as f:
+              rows = [r for r in csv.DictReader(f) if (r.get("Hostname") or "").strip()]
+
+          with open("vpngate.csv", "w", encoding="utf-8", newline="") as f:
+              w = csv.DictWriter(f, fieldnames=RAW_HEADER)
+              w.writeheader()
+              for r in rows:
+                  w.writerow({k: (r.get(k) or "") for k in RAW_HEADER})
+          print(f"已用有效库覆盖原始库: {len(rows)} 行, 列: {','.join(RAW_HEADER)}")
+          PY
           echo "清理前 ${before} 行, 清理后 ${after} 行"
 
       - name: 提交清理结果

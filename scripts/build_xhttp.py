@@ -11,7 +11,7 @@
     &sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3,h2
     &type=xhttp&host=snip.edgeoneai.cc.cd
     &path=<fdip path>&mode=stream-one&extra=<urlencoded json>
-    #vpngate | 国家 | 短主机名
+    #家宽|纯净度:7|Japan|241.51|落地:219.100.37.15   (无画像数据时回退 #Japan|241.51)
 
 环境变量:
   VPNGATE_TESTED_CSV  有效库路径 (默认: 仓库根 vpngate_tested.csv)
@@ -51,15 +51,18 @@ def load_daily_module():
     return mod
 
 
-def build_xhttp_link(daily, country, hostname, tcp_port):
-    """由 CSV 行字段拼出一条 VLESS+XHTTP 分享链接; 字段缺失返回 None。"""
-    country = (country or "").strip()
-    hostname = (hostname or "").strip()
-    tcp_port = (tcp_port or "").strip()
+def build_xhttp_link(daily, row):
+    """由 CSV 行字段拼出一条 VLESS+XHTTP 分享链接; 字段缺失返回 None。
+
+    备注与 vpngate-v2ray.txt 保持同源(见 vpngate-daily.py 的 remark())。
+    """
+    country = (row.get("Country") or "").strip()
+    hostname = (row.get("Hostname") or "").strip()
+    tcp_port = str(row.get("TCP_Port") if row.get("TCP_Port") is not None else "").strip()
     if not (country and hostname and tcp_port):
         return None
     path = quote(daily.fdip_path(hostname, tcp_port), safe="")
-    name = quote(daily.remark(country, hostname), safe="")
+    name = quote(daily.remark(row), safe="")
     extra = quote(json.dumps(XHTTP_EXTRA, separators=(",", ":"), ensure_ascii=False), safe="")
     sni = daily.CLASH_SNI
     return (
@@ -81,7 +84,7 @@ def main():
         rows = list(csv.DictReader(f))
     links = []
     for r in rows:
-        link = build_xhttp_link(daily, r.get("Country"), r.get("Hostname"), r.get("TCP_Port"))
+        link = build_xhttp_link(daily, r)
         if link:
             links.append(link)
     with open(XHTTP_PATH, "w", encoding="utf-8") as f:

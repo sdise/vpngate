@@ -17,8 +17,14 @@ VPNGate 每小时增量抓取脚本
 数据分层:
 - vpngate.csv: 原始累计库,只增不减(每周由有效库覆盖清理一次)。
 - vpngate.txt: 原始库的全量 VLESS 链接列表(每行一条),每小时重建; 每日检测的输入。
-- vpngate_tested.csv: 有效节点库,由 scripts/test_nodes.py 每日实测后重写。
+- vpngate_tested.csv: 有效节点库,由 scripts/test_nodes.py 每日实测后重写;
+  比原始库多三列 IsResidential / FraudScore / ExitIP(经节点请求
+  https://my.ippure.com/v1/info 得到, 见 IPINFO_FIELDS)。
 - vpngate-v2ray.txt / vpngate-clash.yaml: 订阅文件,始终由有效库生成。
+
+备注(客户端里显示的节点名)规则见 remark():
+- 有效库行且 ippure 三个字段齐全: `家宽|纯净度:{fraudScore}|{Country}|{Speed_Mbps}|落地:{ip}`
+- 其余情况(无返回 / 返回异常 / 关键参数缺失): `{Country}|{Speed_Mbps}`
 
 仅使用标准库,无第三方依赖,容器重置后可直接运行。
 日志: vpngate-fetch.log
@@ -144,31 +150,82 @@ def fdip_path(hostname, tcp_port):
     return f"/fdip=sstp://vpn:vpn@{hostname}:{tcp_port}?ed=2560"
 
 
-def remark(country, hostname):
-    return f"vpngate | {country} | {short_hostname(hostname)}"
+# ---------------------------------------------------------------------------
+# 备注(客户端里显示的节点名)
+# ---------------------------------------------------------------------------
+# 有效库(vpngate_tested.csv)里额外保存由 scripts/test_nodes.py 经节点请求
+# https://my.ippure.com/v1/info 得到的三个字段; 原始库(vpngate.csv)没有这些列。
+IPINFO_FIELDS = ["IsResidential", "FraudScore", "ExitIP"]
 
 
-def build_vless_link(country, hostname, tcp_port):
+def residential_kind(value):
+    """IsResidential 单元格 -> 家宽 / 机房; 无法判定时返回空串。"""
+    v = str(value if value is not None else "").strip().lower()
+    if v in ("true", "1", "yes", "y"):
+        return "家宽"
+    if v in ("false", "0", "no", "n"):
+        return "机房"
+    return ""
+
+
+def _as_row(row_or_country, hostname=None, tcp_port=None):
+    """兼容两种调用方式:
+
+    - ``build_xxx(row)`` —— 推荐, row 为 csv.DictReader 的一行;
+    - ``build_xxx(country, hostname, tcp_port)`` —— 旧签名, 继续支持。
+    """
+    if isinstance(row_or_country, dict):
+        return row_or_country
+    return {"Country": row_or_country, "Hostname": hostname, "TCP_Port": tcp_port}
+
+
+def remark(row, hostname=None, tcp_port=None):
+    """生成节点备注。
+
+    有 ippure 检测数据(家宽/机房、纯净度、落地 IP 齐全)时:
+        ``家宽|纯净度:7|Japan|241.51|落地:219.100.37.15``
+    否则(无返回 / 返回异常 / 关键参数缺失, 例如触发人机验证时)回退为:
+        ``Japan|241.51``
+    """
+    r = _as_row(row, hostname, tcp_port)
+    country = (r.get("Country") or "").strip()
+    host = (r.get("Hostname") or "").strip()
+    speed = (r.get("Speed_Mbps") or "").strip()
+    kind = residential_kind(r.get("IsResidential"))
+    score = str(r.get("FraudScore") if r.get("FraudScore") is not None else "").strip()
+    exit_ip = (r.get("ExitIP") or "").strip()
+
+    if kind and score and exit_ip and country and speed:
+        return f"{kind}|纯净度:{score}|{country}|{speed}|落地:{exit_ip}"
+    if country and speed:
+        return f"{country}|{speed}"
+    # 极端兜底: 关键字段缺失时也不要生成空备注
+    return country or short_hostname(host) or host or "vpngate"
+
+
+def build_vless_link(row, hostname=None, tcp_port=None):
     """由 CSV 行字段拼出一条 v2rayN 分享链接;字段缺失返回 None。"""
-    country = (country or "").strip()
-    hostname = (hostname or "").strip()
-    tcp_port = (tcp_port or "").strip()
-    if not (country and hostname and tcp_port):
+    r = _as_row(row, hostname, tcp_port)
+    country = (r.get("Country") or "").strip()
+    host = (r.get("Hostname") or "").strip()
+    port = str(r.get("TCP_Port") if r.get("TCP_Port") is not None else "").strip()
+    if not (country and host and port):
         return None
-    path = quote(fdip_path(hostname, tcp_port), safe="")
-    name = quote(remark(country, hostname), safe="")
+    path = quote(fdip_path(host, port), safe="")
+    name = quote(remark(r), safe="")
     return f"{VLESS_BASE}{path}#{name}"
 
 
-def build_clash_proxy(country, hostname, tcp_port):
+def build_clash_proxy(row, hostname=None, tcp_port=None):
     """由 CSV 行字段拼出一个 Clash proxy 节点 dict;字段缺失返回 None。"""
-    country = (country or "").strip()
-    hostname = (hostname or "").strip()
-    tcp_port = (tcp_port or "").strip()
-    if not (country and hostname and tcp_port):
+    r = _as_row(row, hostname, tcp_port)
+    country = (r.get("Country") or "").strip()
+    host = (r.get("Hostname") or "").strip()
+    port = str(r.get("TCP_Port") if r.get("TCP_Port") is not None else "").strip()
+    if not (country and host and port):
         return None
     return {
-        "name": remark(country, hostname),
+        "name": remark(r),
         "type": "vless",
         "server": VLESS_SERVER.split(":")[0],
         "port": int(VLESS_SERVER.split(":")[1]),
@@ -180,7 +237,7 @@ def build_clash_proxy(country, hostname, tcp_port):
         "fingerprint": "chrome",
         "alpn": ["h3", "h2"],
         "ws-opts": {
-            "path": fdip_path(hostname, tcp_port),
+            "path": fdip_path(host, port),
             "headers": {"Host": CLASH_SNI},
         },
     }
@@ -197,7 +254,7 @@ def rebuild_v2ray_links(csv_path=None, out_path=None):
     out_path = out_path or V2RAY_PATH
     links = []
     for r in read_rows(csv_path):
-        link = build_vless_link(r.get("Country"), r.get("Hostname"), r.get("TCP_Port"))
+        link = build_vless_link(r)
         if link:
             links.append(link)
     with open(out_path, "w", encoding="utf-8") as f:
@@ -212,10 +269,24 @@ def rebuild_clash_subscription(csv_path=None, out_path=None):
     csv_path = csv_path or CSV_PATH
     out_path = out_path or CLASH_PATH
     proxies = []
+    used_names = set()
     for r in read_rows(csv_path):
-        p = build_clash_proxy(r.get("Country"), r.get("Hostname"), r.get("TCP_Port"))
-        if p:
-            proxies.append(p)
+        p = build_clash_proxy(r)
+        if not p:
+            continue
+        # Clash 要求 proxy 名字唯一; 新备注格式只含 国家+速度+落地 IP,
+        # 同一出口 IP 的多个 Hostname 可能撞名, 这里按需补短主机名 / 序号。
+        if p["name"] in used_names:
+            short = short_hostname((r.get("Hostname") or "").strip())
+            base = f"{p['name']}|{short}" if short else p["name"]
+            candidate = base
+            i = 2
+            while candidate in used_names:
+                candidate = f"{base}#{i}"
+                i += 1
+            p["name"] = candidate
+        used_names.add(p["name"])
+        proxies.append(p)
     names = [p["name"] for p in proxies]
     config = {
         "proxies": proxies,

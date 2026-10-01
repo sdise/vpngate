@@ -381,13 +381,13 @@
 |---|---|
 | `vpngate.csv` | 原始库：全部采集节点，`Country,Hostname,IP,Speed_Mbps,TCP_Port`，只增不减 |
 | `vpngate.txt` | 原始库全量链接列表：VLESS 链接每行一条（未经检测），每日检测的输入 |
-| `vpngate_tested.csv` | 有效库：xray 实测有效的节点（全量重写） |
+| `vpngate_tested.csv` | 有效库：xray 实测有效的节点（全量重写）；比原始库多 `IsResidential` / `FraudScore` / `ExitIP` 三列（经节点请求 `my.ippure.com/v1/info` 采集的画像） |
 | `vpngate-v2ray.txt` | v2rayN 系订阅：VLESS + WebSocket 分享链接，每行一条（由有效库生成） |
 | `vpngate-clash.yaml` | Clash 系订阅：完整 YAML 配置，可直接作为订阅链接（由有效库生成） |
 | `vpngate-xhttp.txt` | VLESS + XHTTP 订阅：`mode=stream-one` + xPadding 混淆，每行一条（由有效库生成） |
 | `vpngate-daily.py` | 主脚本：抓取 API → 过滤 TCP 中继 → 增量写原始库；内含订阅生成函数 |
 | `vpngate.md` | **转换原理详解**：API 字段、过滤规则、VLESS 模板、`fdip=sstp://…` 路径方案、备注格式 |
-| `scripts/test_nodes.py` | 有效性检测脚本：xray 实测每条链接 → 写有效库 → 重建订阅（不碰原始库） |
+| `scripts/test_nodes.py` | 有效性检测脚本：xray 实测每条链接 → 经节点采集 IP 画像（家宽/机房、纯净度、落地 IP）→ 写有效库 → 重建订阅（不碰原始库） |
 | `scripts/build_xhttp.py` | 由有效库生成 `vpngate-xhttp.txt`（VLESS + XHTTP） |
 | `scripts/sstp_check.py` | 轻量节点探测：直接对节点做 SSTP 握手（纯标准库，无需 xray），用于体检/排查 |
 | `scripts/gen_readme.py` | 统计脚本：把总节点、有效节点与各国最快链接写回本文件的自动区块 |
@@ -406,7 +406,7 @@ vless://<UUID>@saas.sin.fan:443?encryption=none&security=tls
   &sni=snip.edgeoneai.cc.cd&fp=chrome&alpn=h3,h2&type=ws
   &host=snip.edgeoneai.cc.cd
   &path=/fdip=sstp://vpn:vpn@vpn228702251.opengw.net:1587?ed=2560
-  #vpngate | Japan | vpn228702251
+  #家宽|纯净度:7|Japan|241.51|落地:219.100.37.15
 ```
 
 **两段式设计**，重点理解：
@@ -418,7 +418,17 @@ vless://<UUID>@saas.sin.fan:443?encryption=none&security=tls
    用 **SSTP 协议**（账号 `vpn`/`vpn`）拨号到对应的 VPNGate 志愿者节点，
    再把流量桥接回去。
 
-备注格式为 `vpngate | 国家 | 短主机名`，方便在客户端中识别。
+**备注（客户端里显示的节点名）**分两种：
+
+| 情况 | 格式 | 示例 |
+|---|---|---|
+| 有效节点且画像数据齐全 | `{家宽\|机房}\|纯净度:{fraudScore}\|{国家}\|{速度}\|落地:{ip}` | `家宽\|纯净度:7\|Japan\|241.51\|落地:219.100.37.15` |
+| 无画像数据（原始库，或采集失败/触发人机验证） | `{国家}\|{速度}` | `Japan\|241.51` |
+
+- `家宽` / `机房` 由 `isResidential` 决定（`true` = 家宽，`false` = 机房）；
+- `纯净度` 取接口返回的 `fraudScore`（越低越干净）；
+- `落地` 是经该节点出口查到的公网 IP，可能是 IPv4 或 IPv6；
+- `速度` 取 `vpngate.csv` 的 `Speed_Mbps`。
 
 > 完整拆解见 [`vpngate.md`](vpngate.md)。
 
