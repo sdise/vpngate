@@ -69,6 +69,87 @@ VLESS_BASE = (
 # Clash 订阅固定参数(与 VLESS 模板同源)
 CLASH_SNI = "snip.edgeoneai.cc.cd"
 
+# ---------------------------------------------------------------------------
+# Clash 国内外分流
+# ---------------------------------------------------------------------------
+# 代理组名(手动选择); rules 的兜底规则指向它
+CLASH_GROUP = "vpngate-手动选择"
+# 自动测速组(url-test): 按延迟自动挑当前最快的节点
+CLASH_AUTO_GROUP = "vpngate-自动选择"
+CLASH_TEST_URL = "http://www.gstatic.com/generate_204"
+CLASH_TEST_INTERVAL = 300   # 健康检查间隔(秒)
+CLASH_TEST_TOLERANCE = 50   # 延迟差小于该值(ms)时不切换, 避免抖动
+
+# 私有 / 特殊网段: 局域网、回环、链路本地、运营商级 NAT、组播 —— 一律直连,
+# 避免访问 NAS、路由器后台、投屏等被绕进代理。
+CLASH_PRIVATE_CIDRS = (
+    "127.0.0.0/8",     # 回环
+    "10.0.0.0/8",      # 私有 A 类
+    "172.16.0.0/12",   # 私有 B 类
+    "192.168.0.0/16",  # 私有 C 类
+    "100.64.0.0/10",   # 运营商级 NAT (RFC 6598)
+    "169.254.0.0/16",  # 链路本地
+    "224.0.0.0/4",     # 组播
+)
+
+# DNS 段: fake-ip + 国内优先解析。
+# 国内域名/直连流量走阿里与腾讯的公共 DNS, 需要代理的域名再由 DoH 兜底解析,
+# 避免国内域名被解析到海外 CDN 而误走代理。
+CLASH_DNS = {
+    "enable": True,
+    "ipv6": False,
+    "enhanced-mode": "fake-ip",
+    "fake-ip-range": "198.18.0.1/16",
+    "fake-ip-filter": [
+        "*.lan",
+        "*.local",
+        "*.localhost",
+        "+.msftconnecttest.com",
+        "+.msftncsi.com",
+    ],
+    "default-nameserver": ["223.5.5.5", "119.29.29.29"],
+    "nameserver": ["223.5.5.5", "119.29.29.29"],
+    "fallback": ["https://1.1.1.1/dns-query", "https://8.8.8.8/dns-query"],
+    "fallback-filter": {"geoip": True, "geoip-code": "CN"},
+}
+
+
+def build_clash_proxy_groups(names):
+    """生成代理组: 手动选择(附带 DIRECT) + 自动测速(url-test)。
+
+    - ``vpngate-手动选择``: 手动挑节点, 末尾附 ``DIRECT`` 便于临时直连;
+    - ``vpngate-自动选择``: ``url-test`` 按延迟自动选最快, ``lazy`` 表示
+      仅在真正被使用时才做健康检查, 避免近千节点常年空跑测速。
+    """
+    names = list(names)
+    return [
+        {"name": CLASH_GROUP, "type": "select", "proxies": names + ["DIRECT"]},
+        {
+            "name": CLASH_AUTO_GROUP,
+            "type": "url-test",
+            "url": CLASH_TEST_URL,
+            "interval": CLASH_TEST_INTERVAL,
+            "tolerance": CLASH_TEST_TOLERANCE,
+            "lazy": True,
+            "proxies": names,
+        },
+    ]
+
+
+def build_clash_rules(group=None):
+    """生成 Clash 分流规则: 私有网段 + 国内直连, 其余(国外)走代理。
+
+    只使用客户端内置的 GeoIP 库(`GEOIP,CN`), 不依赖任何远程规则集,
+    兼容 Clash Premium / mihomo / Clash Verge 等各内核, 离线也能工作。
+
+    `no-resolve` 表示匹配这几条 IP 规则时不要为了匹配而去解析域名。
+    """
+    group = group or CLASH_GROUP
+    rules = [f"IP-CIDR,{cidr},DIRECT,no-resolve" for cidr in CLASH_PRIVATE_CIDRS]
+    rules.append("GEOIP,CN,DIRECT")   # 国内 IP 直连
+    rules.append(f"MATCH,{group}")    # 其余(国外)走代理
+    return rules
+
 
 def log(msg):
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -289,17 +370,18 @@ def rebuild_clash_subscription(csv_path=None, out_path=None):
         proxies.append(p)
     names = [p["name"] for p in proxies]
     config = {
+        "dns": CLASH_DNS,
         "proxies": proxies,
-        "proxy-groups": [
-            {"name": "vpngate-手动选择", "type": "select", "proxies": names},
-        ],
-        "rules": ["MATCH,vpngate-手动选择"],
+        "proxy-groups": build_clash_proxy_groups(names),
+        "rules": build_clash_rules(),
     }
     ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     header = (
         "# vpngate Clash 订阅,由 vpngate-daily.py 自动生成\n"
         f"# 更新时间: {ts}\n"
         f"# 有效节点数: {len(proxies)}\n"
+        f"# 代理组: {CLASH_GROUP}(手动, 含 DIRECT) / {CLASH_AUTO_GROUP}(url-test 自动)\n"
+        "# 分流: 私有网段 + GEOIP,CN 直连, 其余走代理\n"
         "# 项目: https://github.com/sdise/vpngate\n"
     )
     with open(out_path, "w", encoding="utf-8") as f:

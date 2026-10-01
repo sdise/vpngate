@@ -206,9 +206,116 @@ GET https://my.ippure.com/v1/info
       Host: snip.edgeoneai.cc.cd
 ```
 
-文件尾部附带一个 `select` 类型的 `proxy-groups`（`vpngate-手动选择`，
-含全部节点）与 `rules: [MATCH, vpngate-手动选择]`，因此整个文件就是一份
-开箱即用的 Clash 配置，可直接填入客户端订阅。
+文件里除了节点，还带有 **DNS 段**、**两个代理组** 和一套**国内外分流规则**，
+因此整个文件就是一份开箱即用的 Clash 配置，可直接填入客户端订阅。
+
+顶层结构：
+
+```yaml
+dns:            # fake-ip + 国内优先解析
+proxies:        # 978 个节点
+proxy-groups:   # vpngate-手动选择 / vpngate-自动选择
+rules:          # 私有网段 + 国内直连, 其余走代理
+```
+
+### 代理组（`build_clash_proxy_groups()`）
+
+| 组名 | 类型 | 说明 |
+|---|---|---|
+| `vpngate-手动选择` | `select` | 手动挑节点；**末尾附 `DIRECT`**，需要临时全部直连时直接切到它即可 |
+| `vpngate-自动选择` | `url-test` | 按延迟自动选当前最快的节点，`interval: 300`、`tolerance: 50`、`lazy: true` |
+
+```yaml
+proxy-groups:
+- name: vpngate-手动选择
+  type: select
+  proxies: [ ...978 个节点..., DIRECT ]
+- name: vpngate-自动选择
+  type: url-test
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  tolerance: 50
+  lazy: true
+  proxies: [ ...978 个节点... ]
+```
+
+- `tolerance: 50`（毫秒）：新节点延迟比当前节点快不足 50ms 时不切换，避免来回抖动；
+- `lazy: true`：**仅在该组真正被使用时**才做健康检查 —— 近千个节点若常年空跑测速，
+  在手机上开销很大，务必保留这一项；
+- 默认走的仍是 `vpngate-手动选择`（见 `rules` 的 `MATCH`），想用自动测速组
+  在客户端里把它选上即可。
+
+### DNS 段（`CLASH_DNS`）
+
+```yaml
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+  - "*.lan"
+  - "*.local"
+  - "*.localhost"
+  - "+.msftconnecttest.com"
+  - "+.msftncsi.com"
+  default-nameserver: [223.5.5.5, 119.29.29.29]
+  nameserver: [223.5.5.5, 119.29.29.29]
+  fallback: [https://1.1.1.1/dns-query, https://8.8.8.8/dns-query]
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+```
+
+| 配置 | 作用 |
+|---|---|
+| `enhanced-mode: fake-ip` | 域名先返回假 IP（`198.18.0.0/16`），让规则按**域名**介入，避免「解析→匹配」的时序问题 |
+| `fake-ip-filter` | 局域网 / `localhost` / Windows 连通性探测域名**不做 fake-ip**，否则内网访问与联网状态检测会异常 |
+| `default-nameserver` | 纯 IP，用于解析下面 DoH 的域名本身 |
+| `nameserver` | 国内公共 DNS（阿里 / 腾讯），国内域名解析快且准 |
+| `fallback` + `fallback-filter` | 国外 DoH 兜底；命中 `geoip-code: CN` 时以国内解析结果为准，减少国内域名被解析到海外 CDN |
+
+> `ipv6: false` 是为了避免在只有 IPv4 出口时拿到 AAAA 记录导致连接失败；
+> 如果你的网络本身有可用 IPv6，可以改成 `true`。
+>
+> DNS 段**只在客户端把它当作完整配置加载时生效**；如果只是把本文件当作
+> 「订阅」导入到已有配置里，大多数客户端只会取 `proxies` / `proxy-groups` /
+> `rules`，DNS 与代理组的细节以客户端自身设置为准。
+
+### 分流规则（`build_clash_rules()`）
+
+**国内直连、国外走代理**，且只依赖客户端内置的 GeoIP 库，不引用任何远程规则集：
+
+```yaml
+rules:
+- IP-CIDR,127.0.0.0/8,DIRECT,no-resolve      # 回环
+- IP-CIDR,10.0.0.0/8,DIRECT,no-resolve       # 私有 A 类
+- IP-CIDR,172.16.0.0/12,DIRECT,no-resolve    # 私有 B 类
+- IP-CIDR,192.168.0.0/16,DIRECT,no-resolve   # 私有 C 类（家庭局域网）
+- IP-CIDR,100.64.0.0/10,DIRECT,no-resolve    # 运营商级 NAT (RFC 6598)
+- IP-CIDR,169.254.0.0/16,DIRECT,no-resolve   # 链路本地
+- IP-CIDR,224.0.0.0/4,DIRECT,no-resolve      # 组播
+- GEOIP,CN,DIRECT                            # 国内 IP 直连
+- MATCH,vpngate-手动选择                       # 其余（国外）走代理
+```
+
+| 流量 | 走向 | 说明 |
+|---|---|---|
+| 局域网 / 回环 / 链路本地等私有网段 | **直连** | 访问 NAS、路由器后台、内网服务不会被绕进代理 |
+| 国内 IP | **直连** | 百度、淘宝、B 站等不绕路，减少被风控与降速 |
+| 其余（国外）IP | **走代理** | 落在兜底 `MATCH` 上，走 `vpngate-手动选择` 里选中的节点 |
+
+几点说明：
+
+- `no-resolve` 表示匹配这些 IP 规则时**不额外解析域名**，避免无谓的 DNS 查询；
+- `GEOIP,CN` 用的是客户端自带的 GeoIP 数据库（mihomo / Clash Premium / Clash
+  Verge 均内置），因此**离线可用**，也不会有规则集拉取失败的问题；
+- 判定依据是**目标 IP 归属**而非域名。若某国内域名解析到了海外 CDN，
+  会走代理；这类边界情况如需更精确，可改用 `GEOSITE` / `rule-providers`
+  做域名级分流（需要 mihomo 内核且客户端能联网拉规则）；
+- `MATCH` 指向 `vpngate-手动选择`。需要临时全部直连时，把该组切成
+  `DIRECT` 即可（组末尾已附）；想按延迟自动挑节点就切到
+  `vpngate-自动选择`。
 
 > **名字唯一性**：Clash 要求每个 proxy 的 `name` 唯一。新备注只含
 > `国家 + 速度 + 落地 IP`，同一出口 IP 上挂多个 `Hostname` 时可能撞名，
