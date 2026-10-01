@@ -1,6 +1,6 @@
 # vpngate — VPNGate 节点自动采集与 VLESS 订阅
 
-本仓库每小时自动从 **VPNGate 官方 API** 采集全球志愿者 VPN 中继节点，
+本仓库每 3 小时自动从 **VPNGate 官方 API** 采集全球志愿者 VPN 中继节点，
 并用 **xray 内核逐个实测**连通性，只把有效节点做成订阅，
 保证订阅里都是可用节点。
 
@@ -8,7 +8,7 @@
 
 ## 📡 订阅链接（重点）
 
-> 每小时自动采集 + 检测更新，直接填入客户端的"订阅"即可。
+> 每 3 小时自动采集 + 检测更新，直接填入客户端的"订阅"即可。
 > 以下三个订阅均由**同一批有效节点**生成，按客户端/协议三选一：
 
 | 客户端 / 协议 | 订阅链接 |
@@ -32,13 +32,13 @@
 下面两组数据由 GitHub Actions 自动写入（脚本 `scripts/gen_readme.py`），
 **标记行之间请勿手工编辑**。
 
-### 原始库（每小时抓取后更新）
+### 原始库（每 3 小时抓取后更新）
 
 <!-- BEGIN:TOTAL -->
 > 更新时间：2026-10-01 17:08 UTC ｜ 原始库累计 **1033** 个节点，覆盖 **29** 个国家/地区
 <!-- END:TOTAL -->
 
-### 有效节点（每天检测后更新）
+### 有效节点（每 3 小时检测后更新）
 
 <!-- BEGIN:TESTED -->
 > 检测时间：2026-10-01 17:08 UTC ｜ 实测有效 **874** 个节点，覆盖 **26** 个国家/地区，平均速度 **267 Mbps**
@@ -358,7 +358,7 @@
 | 有效库 | `vpngate_tested.csv` —— xray 实测有效的节点 |
 | 订阅文件 | `vpngate-v2ray.txt`（VLESS ws）/ `vpngate-clash.yaml`（Clash）/ `vpngate-xhttp.txt`（VLESS XHTTP），均由有效库生成 |
 | 入口地址 | `saas.sin.fan:443`（VLESS 链接中的 `@` 后地址） |
-| 更新频率 | **每小时**：抓取增量 + 检测有效性 + 重建订阅（外部定时器触发 `sync.yml`） |
+| 更新频率 | **每 3 小时**：抓取增量 + 检测有效性 + 重建订阅（外部定时器触发 `sync.yml`） |
 | 每周清理 | **每 7 天**用有效库覆盖原始库，防止无效节点越积越多 |
 | 转换原理 | 见 [`vpngate.md`](vpngate.md)（模板拆解、fdip 路径方案详解） |
 
@@ -369,7 +369,7 @@
 | 文件 | 说明 |
 |---|---|
 | `vpngate.csv` | 原始库：全部采集节点，`Country,Hostname,IP,Speed_Mbps,TCP_Port`，只增不减 |
-| `vpngate.txt` | 原始库全量链接列表：VLESS 链接每行一条（未经检测），每日检测的输入 |
+| `vpngate.txt` | 原始库全量链接列表：VLESS 链接每行一条（未经检测），每次检测的输入 |
 | `vpngate_tested.csv` | 有效库：xray 实测有效的节点（全量重写）；比原始库多 `IsResidential` / `FraudScore` / `ExitIP` 三列（经节点请求 `my.ippure.com/v1/info` 采集的画像） |
 | `vpngate-v2ray.txt` | v2rayN 系订阅：VLESS + WebSocket 分享链接，每行一条（由有效库生成） |
 | `vpngate-clash.yaml` | Clash 系订阅：完整 YAML 配置 —— **含国内外分流**（私有网段 + `GEOIP,CN` 直连，其余走代理）、**两个代理组**（手动选择，含 `DIRECT`；`url-test` 自动测速）、**DNS 段**（fake-ip + 国内优先解析）；由有效库生成，可直接作为订阅链接 |
@@ -380,7 +380,7 @@
 | `scripts/build_xhttp.py` | 由有效库生成 `vpngate-xhttp.txt`（VLESS + XHTTP） |
 | `scripts/sstp_check.py` | 轻量节点探测：直接对节点做 SSTP 握手（纯标准库，无需 xray），用于体检/排查 |
 | `scripts/gen_readme.py` | 统计脚本：把总节点、有效节点与各国最快链接写回本文件的自动区块 |
-| `.github/workflows/sync.yml` | 主工作流：每 2 小时「抓取 + 检测 + 重建订阅 + 提交」（外部定时器触发） |
+| `.github/workflows/sync.yml` | 主工作流：每 3 小时「抓取 + 检测 + 重建订阅 + 提交」（外部定时器触发） |
 | `.github/workflows/prune.yml` | 每周用有效库覆盖清理原始库工作流 |
 | `vpngate-fetch.log` | 抓取运行日志 |
 
@@ -431,7 +431,7 @@ vless://<UUID>@saas.sin.fan:443?encryption=none&security=tls
 
 数据分三层流转：**原始库 → 有效库 → 订阅文件**。
 
-**主流水线 `.github/workflows/sync.yml`（每 2 小时）** —— 由**外部定时器**触发
+**主流水线 `.github/workflows/sync.yml`（每 3 小时）** —— 由**外部定时器**触发
 （服务器 crontab 调用 GitHub API 的 `workflow_dispatch`），不使用 GitHub 原生 `schedule`
 （后者是 best-effort，高负载时会延迟数十分钟甚至丢点）。单次运行依次执行：
 
@@ -454,7 +454,7 @@ vless://<UUID>@saas.sin.fan:443?encryption=none&security=tls
 - **每周清理**（`prune.yml`，每周日 04:00 UTC）：用 `vpngate_tested.csv`
   覆盖 `vpngate.csv`，清除累积的下线节点，防止原始库无限膨胀。
 - 公开仓库的计划任务在 **60 天无提交时会被 GitHub 自动暂停**，
-  本仓库每小时都有提交，因此不会触发该限制。
+  本仓库每 3 小时都有提交，因此不会触发该限制。
 
 ## ✅ 合规说明（GitHub 使用政策评估）
 

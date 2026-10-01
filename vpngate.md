@@ -32,7 +32,7 @@
 5. 速度换算：`Speed(bps) / 1_000_000` → Mbps，保留 2 位小数。
 6. 主机名统一为 DDNS 形式：`<HostName>.opengw.net`（如 `vpn228702251.opengw.net`）。
 7. 同一 Hostname 去重；排序：Country 升序、Speed 降序。
-8. **增量写入**：以 Hostname 为键与现有 `vpngate.csv` 比对，只追加新节点，已存在的整行忽略（节点下线不会自动删除，删除由每日有效性检测负责）。
+8. **增量写入**：以 Hostname 为键与现有 `vpngate.csv` 比对，只追加新节点，已存在的整行忽略（节点下线不会自动删除，删除由每次有效性检测负责）。
 
 ## 3. `vpngate.csv` 文件格式
 
@@ -144,10 +144,10 @@ vless://495c7195-85b8-498a-bf20-2ea9ce9175b5@saas.sin.fan:443
 
 数据分两条线生成：
 
-1. **`vpngate.txt`（全量列表）**：每小时任务调用
+1. **`vpngate.txt`（全量列表）**：每 3 小时任务调用
    `rebuild_v2ray_links(vpngate.csv, vpngate.txt)`，由原始库全量重建，
-   未经有效性检测；同时作为每日检测任务的输入。
-2. **订阅文件（有效节点）**：`scripts/test_nodes.py` 每日检测后调用
+   未经有效性检测；同时作为检测任务的输入。
+2. **订阅文件（有效节点）**：`scripts/test_nodes.py` 每次检测后调用
    `rebuild_subscriptions(vpngate_tested.csv)`，由有效库生成
    `vpngate-v2ray.txt`（v2rayN）与 `vpngate-clash.yaml`（Clash）。
 
@@ -181,7 +181,7 @@ GET https://my.ippure.com/v1/info
 - `_unregistered_vpn335506854.opengw.net`（China）：全表唯一非标准注册格式
   的主机名（正常为 `vpn+数字.opengw.net`），“unregistered”表示未在 VPNGate
   官方注册，来源可疑；且速度仅 0.99 Mbps，基本不可用。建议视为不可信节点。
-- VPNGate 节点由全球志愿者提供，随时上下线；有效性以每日自动检测为准，
+- VPNGate 节点由全球志愿者提供，随时上下线；有效性以自动检测为准，
   失效节点会自动从 `vpngate.csv` 中删除。
 
 ### Clash 订阅结构（`vpngate-clash.yaml`）
@@ -327,9 +327,9 @@ rules:
 
 | 层 | 文件 | 更新方式 |
 |---|---|---|
-| 原始库 | `vpngate.csv` | 每小时抓取增量追加；每周被有效库覆盖清理一次 |
-| 全量列表 | `vpngate.txt` | 每小时由原始库重建；每日检测的输入 |
-| 有效库 | `vpngate_tested.csv` | 每日 xray 实测后全量重写 |
+| 原始库 | `vpngate.csv` | 每 3 小时抓取增量追加；每周被有效库覆盖清理一次 |
+| 全量列表 | `vpngate.txt` | 每 3 小时由原始库重建；检测的输入 |
+| 有效库 | `vpngate_tested.csv` | 每次 xray 实测后全量重写 |
 | 订阅 | `vpngate-v2ray.txt`（v2rayN） | 由有效库生成 |
 | 订阅 | `vpngate-clash.yaml`（Clash YAML） | 由有效库生成 |
 
@@ -341,7 +341,6 @@ rules:
 | `vpngate_tested.csv` | 有效节点库 |
 | `vpngate-v2ray.txt` | v2rayN 分享链接（每行一条） |
 | `vpngate-clash.yaml` | Clash 订阅（YAML） |
-| `scripts/test_nodes.py` | 每日有效性检测：读取 vpngate.txt 实测 → 写有效库 → 重建订阅（不碰原始库） |
-| `.github/workflows/update.yml` | 每小时自动抓取更新 |
-| `.github/workflows/test.yml` | 每天自动检测有效性并重建订阅 |
+| `scripts/test_nodes.py` | 有效性检测：读取 vpngate.txt 实测 → 写有效库 → 重建订阅（不碰原始库） |
+| `.github/workflows/sync.yml` | 主流水线：抓取 + 检测 + 重建订阅 + 提交（每 3 小时，外部定时器触发） |
 | `.github/workflows/prune.yml` | 每周用有效库覆盖清理原始库 |

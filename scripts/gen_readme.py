@@ -3,8 +3,8 @@
 把节点统计写回 README.md 的自动区块。
 
 区块(用 HTML 注释标记, 手工编辑时不要改动标记行):
-  <!-- BEGIN:TOTAL  --> ... <!-- END:TOTAL  -->   原始库总节点统计(update.yml 更新)
-  <!-- BEGIN:TESTED --> ... <!-- END:TESTED -->   有效节点统计 + 各国最快链接(test.yml 更新)
+  <!-- BEGIN:TOTAL  --> ... <!-- END:TOTAL  -->   原始库总节点统计(sync.yml 更新)
+  <!-- BEGIN:TESTED --> ... <!-- END:TESTED -->   有效节点统计 + 各国最快链接(sync.yml 更新)
 
 用法:
   python scripts/gen_readme.py --mode total    # 更新总节点区块

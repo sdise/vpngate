@@ -4,7 +4,7 @@ name: 更新并检测 VPNGate 节点
 # (由原 update.yml 与 test.yml 合并而来)
 #
 # 触发方式(A 方案, 不依赖 GitHub 原生 schedule):
-#   由外部定时器(服务器 crontab)每小时调用一次 GitHub API 触发:
+#   由外部定时器(服务器 crontab)每 3 小时调用一次 GitHub API 触发:
 #     POST https://api.github.com/repos/sdise/vpngate/actions/workflows/sync.yml/dispatches
 #     body: {"ref":"main"}
 #   原因: GitHub 原生 schedule 是 best-effort, 高负载时会延迟数十分钟甚至丢点。

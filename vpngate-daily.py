@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-VPNGate 每小时增量抓取脚本
+VPNGate 增量抓取脚本(每 3 小时运行一次)
 ==========================
-复现 /home/hatch/vpsgate.md 的数据流程,每小时执行一次:
+复现 /home/hatch/vpsgate.md 的数据流程,每 3 小时执行一次:
 
 1. 获取: 从 http://www.vpngate.net/api/iphone/ (VPNGate 官方 CSV 接口,
    与 vpsgate.md 提到的页面底部 CSV 下载入口同源) 拉取实时中继列表。
@@ -16,8 +16,8 @@ VPNGate 每小时增量抓取脚本
 
 数据分层:
 - vpngate.csv: 原始累计库,只增不减(每周由有效库覆盖清理一次)。
-- vpngate.txt: 原始库的全量 VLESS 链接列表(每行一条),每小时重建; 每日检测的输入。
-- vpngate_tested.csv: 有效节点库,由 scripts/test_nodes.py 每日实测后重写;
+- vpngate.txt: 原始库的全量 VLESS 链接列表(每行一条),每 3 小时重建; 检测的输入。
+- vpngate_tested.csv: 有效节点库,由 scripts/test_nodes.py 每次实测后重写;
   比原始库多三列 IsResidential / FraudScore / ExitIP(经节点请求
   https://my.ippure.com/v1/info 得到, 见 IPINFO_FIELDS)。
 - vpngate-v2ray.txt / vpngate-clash.yaml: 订阅文件,始终由有效库生成。
@@ -345,7 +345,7 @@ def rebuild_v2ray_links(csv_path=None, out_path=None):
 
 def rebuild_clash_subscription(csv_path=None, out_path=None):
     """根据指定 CSV 全量重建 Clash 订阅文件(YAML,可直接作为订阅链接)."""
-    import yaml  # 延迟导入: 每小时抓取任务保持零第三方依赖
+    import yaml  # 延迟导入: 抓取任务保持零第三方依赖
 
     csv_path = csv_path or CSV_PATH
     out_path = out_path or CLASH_PATH

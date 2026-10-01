@@ -3,7 +3,7 @@
 用 xray 逐个测试 vpngate.csv 中节点的 VLESS 链接有效性，并采集节点画像。
 
 流程:
-1. 从 vpngate.txt 读取待测 VLESS 链接(该文件由每小时任务从原始库生成)。
+1. 从 vpngate.txt 读取待测 VLESS 链接(该文件由每 3 小时任务从原始库生成)。
 2. 解析每条链接,取出 uuid / 入口地址端口 / tls 与 ws 参数;
    为每条链接生成一份最小 xray 配置 (socks 入站 + vless 出站),
    启动 xray 后经 SOCKS5 请求检测 URL, 返回 2xx/3xx 即判定有效。
@@ -306,7 +306,7 @@ def main():
         if h:
             host_to_row[h] = r
 
-    # 检测链接从 vpngate.txt 读取(由每小时任务从原始库生成)
+    # 检测链接从 vpngate.txt 读取(由每 3 小时任务从原始库生成)
     with open(TXT_PATH, encoding="utf-8") as f:
         links = [ln.strip() for ln in f if ln.strip().startswith("vless://")]
     print(f"待测链接: {len(links)} (来源 {TXT_PATH})", flush=True)
